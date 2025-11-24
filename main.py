@@ -1,10 +1,29 @@
 import random
+import os
+from datetime import datetime
 
 class TicTacGame:
     def __init__(self):
         self.players = ['X', 'O']
         self.current_turn = None
         self.mode = None
+        self.stats_dir = "game_stats"
+        self.create_stats_dir()
+    
+    def create_stats_dir(self):
+        if not os.path.exists(self.stats_dir):
+            os.makedirs(self.stats_dir)
+    
+    def save_game_result(self, result, board_size, moves_count):
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        filename = f"{self.stats_dir}/game_{timestamp}.txt"
+        
+        with open(filename, 'w') as f:
+            f.write(f"Game Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"Board Size: {board_size}x{board_size}\n")
+            f.write(f"Total Moves: {moves_count}\n")
+            f.write(f"Game Result: {result}\n")
+            f.write(f"Game Mode: {'Two Players' if self.mode == '1' else 'Player vs Computer'}\n")
     
     def make_board(self, n):
         board = []
@@ -136,7 +155,6 @@ class TicTacGame:
         return first
     
     def play_round(self):
-        
         self.mode = self.select_mode()
         
         size = self.ask_board_size()
@@ -146,6 +164,8 @@ class TicTacGame:
             self.current_turn = 'X'
         else:
             self.current_turn = self.pick_first()
+        
+        moves_count = 0
         
         while True:
             self.show_board(board)
@@ -161,17 +181,24 @@ class TicTacGame:
                 board[r][c] = self.current_turn
                 current_mark = self.current_turn
             
+            moves_count += 1
+            
             if self.check_win(board, current_mark):
                 self.show_board(board)
                 if self.mode == '2' and current_mark == 'O':
-                    print("Computer wins!")
+                    result = "Computer wins!"
+                    print(result)
                 else:
-                    print(f"Player {current_mark} wins!")
+                    result = f"Player {current_mark} wins!"
+                    print(result)
+                self.save_game_result(result, size, moves_count)
                 break
             
             if self.board_full(board):
                 self.show_board(board)
-                print("It's a tie!")
+                result = "It's a tie!"
+                print(result)
+                self.save_game_result(result, size, moves_count)
                 break
             
             if self.mode == '1':
